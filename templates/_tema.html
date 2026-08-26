@@ -1,0 +1,50 @@
+{# ---------------------------------------------------------------------------
+   Pecas do seletor de tema, compartilhadas pelo base.html e pelo catalogo.html
+   (o catalogo nao herda do base porque e a pagina publica do link rastreavel,
+   sem menu nem cabecalho de BI).
+   --------------------------------------------------------------------------- #}
+
+{% macro script_tema() %}
+{# Resolve o tema antes da primeira pintura, senao a tela pisca branca por um
+   quadro. Preferencia salva vence; sem nada salvo, segue o sistema. #}
+<script>
+(function () {
+  var t = null;
+  try { t = localStorage.getItem('tema'); } catch (e) {}
+  if (t !== 'claro' && t !== 'escuro') {
+    t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'escuro' : 'claro';
+  }
+  document.documentElement.setAttribute('data-tema', t);
+})();
+</script>
+{% endmacro %}
+
+
+{% macro botao_tema() %}
+<button type="button" class="btn-tema" onclick="alternarTema()"
+        title="Alternar modo claro/escuro" aria-label="Alternar modo claro/escuro">
+  <svg class="icone-sol" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="4.2"/>
+    <path d="M12 2.2v2.2M12 19.6v2.2M2.2 12h2.2M19.6 12h2.2M5.1 5.1l1.6 1.6M17.3 17.3l1.6 1.6M18.9 5.1l-1.6 1.6M6.7 17.3l-1.6 1.6"/>
+  </svg>
+  <svg class="icone-lua" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M20.5 14.3A8.5 8.5 0 0 1 9.7 3.5a8.5 8.5 0 1 0 10.8 10.8z"/>
+  </svg>
+</button>
+{% endmacro %}
+
+
+{% macro js_tema() %}
+<script>
+function alternarTema() {
+  var raiz = document.documentElement;
+  var novo = raiz.getAttribute('data-tema') === 'escuro' ? 'claro' : 'escuro';
+  raiz.setAttribute('data-tema', novo);
+  try { localStorage.setItem('tema', novo); } catch (e) {}
+  // os graficos do Chart.js pintam em canvas: nao herdam CSS, precisam redesenhar
+  document.dispatchEvent(new CustomEvent('temamudou', { detail: novo }));
+}
+</script>
+{% endmacro %}

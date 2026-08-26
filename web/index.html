@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clientes Limbo · BI</title>
+  <!-- favicon: a marca do autor, no lugar das iniciais da empresa -->
+  <link rel="icon" href="/marca.png">
+  <!-- Tema resolvido antes da primeira pintura, senao a tela pisca branca por um
+       quadro ao carregar no escuro. Mesma logica do _tema.html do Jinja. -->
+  <script>
+    (function () {
+      var t = null;
+      try { t = localStorage.getItem('tema'); } catch (e) {}
+      if (t !== 'claro' && t !== 'escuro') {
+        t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'escuro' : 'claro';
+      }
+      document.documentElement.setAttribute('data-tema', t);
+    })();
+  </script>
+</head>
+<body>
+  <div id="raiz"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>

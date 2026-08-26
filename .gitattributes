@@ -1,0 +1,13 @@
+# Normaliza quebra de linha: LF no repositorio, nativo no disco de cada um.
+# Sem isso, quem clonar em Linux ou Mac ve o projeto inteiro como modificado.
+* text=auto eol=lf
+
+# Windows precisa de CRLF nestes para rodar
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# binarios: o git nao deve tentar converter nada
+*.png binary
+*.jpg binary
+*.xlsx binary
+*.db binary

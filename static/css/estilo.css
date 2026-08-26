@@ -1,0 +1,455 @@
+/* ==========================================================================
+   Tema claro/escuro.
+   DECISAO: toda cor do sistema vira token aqui. Os templates e o painel.js
+   nunca repetem hex - leem var(--token). O atributo data-tema fica no <html>
+   e e escrito pelo script do <head>, antes da primeira pintura, para a tela
+   nao piscar branca ao carregar no escuro.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* marca */
+  --azul-inst: #1F3864;
+  --azul-sec: #2E5C9A;
+  --header-bg: #1F3864;
+  --header-sub: #BFD3EE;
+  --destaque: #1F3864;        /* numeros grandes e titulos fortes */
+
+  /* superficies */
+  --fundo: #F5F7FA;
+  --card: #FFFFFF;
+  --superficie2: #FAFBFC;     /* cabecalho de tabela, blocos internos */
+  --superficie3: #F2F4F7;     /* chips e hover de botao */
+  --hover: #F7F9FC;           /* linha de tabela sob o cursor */
+  --borda: #E4E7EC;
+  --borda-suave: #F0F2F5;     /* divisoria entre linhas */
+  --sombra: 0 1px 3px rgba(16, 24, 40, .06);
+
+  /* texto */
+  --texto: #1A1A1A;
+  --texto2: #667085;
+  --texto3: #98A2B3;
+
+  /* classes e sinais */
+  --classe-a: #12B76A;
+  --classe-b: #F5B301;
+  --classe-c: #98A2B3;
+  --alerta: #D92D20;
+  --whats: #25D366;
+  --branca: #D0D5DD;          /* semaforo de cidade sem cliente */
+
+  /* pilulas de classe: fundo + texto juntos, para o contraste seguir o tema */
+  --pill-a-bg: #12B76A;  --pill-a-fg: #FFFFFF;
+  --pill-b-bg: #F5B301;  --pill-b-fg: #FFFFFF;
+  --pill-c-bg: #98A2B3;  --pill-c-fg: #FFFFFF;
+
+  /* tags de status */
+  --tag-ativo-bg: #E7F8EF;  --tag-ativo-fg: #05603A;  --tag-ativo-bd: #A6F4C5;
+  --tag-limbo-bg: #FEF6E0;  --tag-limbo-fg: #93590B;  --tag-limbo-bd: #FCE49B;
+  --tag-morto-bg: #FEECEB;  --tag-morto-fg: #912018;  --tag-morto-bd: #FDA29B;
+  --tag-neutra-bg: #F2F4F7; --tag-neutra-fg: #475467; --tag-neutra-bd: #E4E7EC;
+
+  /* blocos de confirmacao (promocao de classe, clique registrado) */
+  --ok-fundo: #ECFDF3;
+  --ok-texto: #05603A;
+
+  /* botoes */
+  --btn-bg: #FFFFFF;         --btn-hover: #F2F4F7;
+  --btn-azul-bg: #1F3864;    --btn-azul-hover: #172C4F;    --btn-azul-fg: #FFFFFF;
+  --btn-verde-bg: #12B76A;   --btn-verde-hover: #0E9A58;   --btn-verde-fg: #FFFFFF;
+  --btn-whats-bg: #25D366;   --btn-whats-hover: #1EB857;   --btn-whats-fg: #FFFFFF;
+  --btn-alerta-bg: #FFFFFF;  --btn-alerta-hover: #FEECEB;  --btn-alerta-bd: #FDA29B;
+
+  /* diversos */
+  --barra-fundo: #EEF1F5;
+  --grafico-grade: #F0F2F5;
+  --anel-ponto: #FFFFFF;      /* aro do ponto da linha do tempo */
+  --seta-select: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+
+/* --------------------------------------------------------------------------
+   ESCURO. Nao e o claro invertido: os fundos sobem de tom conforme a camada
+   (fundo < card < superficie2 < superficie3), o texto secundario perde brilho
+   em vez de perder opacidade, e verde/ambar/vermelho sao clareados porque as
+   versoes do tema claro nao alcancam contraste sobre fundo escuro.
+   -------------------------------------------------------------------------- */
+[data-tema="escuro"] {
+  color-scheme: dark;
+
+  --azul-inst: #5C8AD6;
+  --azul-sec: #7BA7E8;
+  --header-bg: #16233C;
+  --header-sub: #94A9CB;
+  --destaque: #D3E0F5;
+
+  --fundo: #0F1318;
+  --card: #181D25;
+  --superficie2: #1E242D;
+  --superficie3: #252C36;
+  --hover: #222933;
+  --borda: #2C333E;
+  --borda-suave: #232A33;
+  --sombra: 0 1px 3px rgba(0, 0, 0, .45);
+
+  --texto: #E4E9F0;
+  --texto2: #98A5B8;
+  --texto3: #8B97AC;
+
+  --classe-a: #34D07F;
+  --classe-b: #F7BE3C;
+  --classe-c: #8B97AC;
+  --alerta: #F97066;
+  --whats: #3DDC7F;
+  --branca: #626E80;
+
+  /* nas pilulas o texto vira escuro: branco sobre verde/ambar claro nao le */
+  --pill-a-bg: #2FBF75;  --pill-a-fg: #05210F;
+  --pill-b-bg: #E8AC1F;  --pill-b-fg: #2A1C00;
+  --pill-c-bg: #5A6576;  --pill-c-fg: #E4E9F0;
+
+  /* tags viram fundo translucido da propria cor, com texto claro */
+  --tag-ativo-bg: rgba(18, 183, 106, .15);  --tag-ativo-fg: #6CE9A6;  --tag-ativo-bd: rgba(18, 183, 106, .38);
+  --tag-limbo-bg: rgba(245, 179, 1, .14);   --tag-limbo-fg: #FBC646;  --tag-limbo-bd: rgba(245, 179, 1, .34);
+  --tag-morto-bg: rgba(240, 68, 56, .15);   --tag-morto-fg: #FDA29B;  --tag-morto-bd: rgba(240, 68, 56, .38);
+  --tag-neutra-bg: #252C36; --tag-neutra-fg: #AEB9C9; --tag-neutra-bd: #333B47;
+
+  --ok-fundo: rgba(18, 183, 106, .12);
+  --ok-texto: #6CE9A6;
+
+  --btn-bg: #222A34;            --btn-hover: #2C3441;
+  --btn-azul-bg: #2E5C9A;       --btn-azul-hover: #3A6DB3;                  --btn-azul-fg: #FFFFFF;
+  --btn-verde-bg: #2FBF75;      --btn-verde-hover: #3DD183;                 --btn-verde-fg: #05210F;
+  --btn-whats-bg: #25D366;      --btn-whats-hover: #3BE07A;                 --btn-whats-fg: #04240F;
+  --btn-alerta-bg: transparent; --btn-alerta-hover: rgba(240, 68, 56, .14); --btn-alerta-bd: rgba(240, 68, 56, .45);
+
+  --barra-fundo: #2A313B;
+  --grafico-grade: #262E38;
+  --anel-ponto: #181D25;
+  --seta-select: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2398A5B8' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+}
+
+/* Sem JS o atributo nao e escrito: respeita a preferencia do sistema. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-tema="claro"]) {
+    color-scheme: dark;
+
+    --azul-inst: #5C8AD6;
+    --azul-sec: #7BA7E8;
+    --header-bg: #16233C;
+    --header-sub: #94A9CB;
+    --destaque: #D3E0F5;
+
+    --fundo: #0F1318;
+    --card: #181D25;
+    --superficie2: #1E242D;
+    --superficie3: #252C36;
+    --hover: #222933;
+    --borda: #2C333E;
+    --borda-suave: #232A33;
+    --sombra: 0 1px 3px rgba(0, 0, 0, .45);
+
+    --texto: #E4E9F0;
+    --texto2: #98A5B8;
+    --texto3: #8B97AC;
+
+    --classe-a: #34D07F;
+    --classe-b: #F7BE3C;
+    --classe-c: #8B97AC;
+    --alerta: #F97066;
+    --whats: #3DDC7F;
+    --branca: #626E80;
+
+    --pill-a-bg: #2FBF75;  --pill-a-fg: #05210F;
+    --pill-b-bg: #E8AC1F;  --pill-b-fg: #2A1C00;
+    --pill-c-bg: #5A6576;  --pill-c-fg: #E4E9F0;
+
+    --tag-ativo-bg: rgba(18, 183, 106, .15);  --tag-ativo-fg: #6CE9A6;  --tag-ativo-bd: rgba(18, 183, 106, .38);
+    --tag-limbo-bg: rgba(245, 179, 1, .14);   --tag-limbo-fg: #FBC646;  --tag-limbo-bd: rgba(245, 179, 1, .34);
+    --tag-morto-bg: rgba(240, 68, 56, .15);   --tag-morto-fg: #FDA29B;  --tag-morto-bd: rgba(240, 68, 56, .38);
+    --tag-neutra-bg: #252C36; --tag-neutra-fg: #AEB9C9; --tag-neutra-bd: #333B47;
+
+    --ok-fundo: rgba(18, 183, 106, .12);
+    --ok-texto: #6CE9A6;
+
+    --btn-bg: #222A34;            --btn-hover: #2C3441;
+    --btn-azul-bg: #2E5C9A;       --btn-azul-hover: #3A6DB3;
+    --btn-verde-bg: #2FBF75;      --btn-verde-hover: #3DD183;                 --btn-verde-fg: #05210F;
+    --btn-whats-bg: #25D366;      --btn-whats-hover: #3BE07A;                 --btn-whats-fg: #04240F;
+    --btn-alerta-bg: transparent; --btn-alerta-hover: rgba(240, 68, 56, .14); --btn-alerta-bd: rgba(240, 68, 56, .45);
+
+    --barra-fundo: #2A313B;
+    --grafico-grade: #262E38;
+    --anel-ponto: #181D25;
+    --seta-select: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2398A5B8' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  }
+}
+
+body {
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--fundo);
+  color: var(--texto);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  box-shadow: var(--sombra);
+}
+
+.titulo-bloco {
+  color: var(--azul-sec);
+  font-weight: 700;
+  font-size: .8rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+/* pilula de classe: circulo colorido com a letra */
+.pill-classe {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: .78rem;
+  flex-shrink: 0;
+}
+.pill-A { background: var(--pill-a-bg); color: var(--pill-a-fg); }
+.pill-B { background: var(--pill-b-bg); color: var(--pill-b-fg); }
+.pill-C { background: var(--pill-c-bg); color: var(--pill-c-fg); }
+
+.tag {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: .7rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+.tag-ATIVO   { background: var(--tag-ativo-bg);  color: var(--tag-ativo-fg);  border-color: var(--tag-ativo-bd); }
+.tag-LIMBO   { background: var(--tag-limbo-bg);  color: var(--tag-limbo-fg);  border-color: var(--tag-limbo-bd); }
+.tag-MORTO   { background: var(--tag-morto-bg);  color: var(--tag-morto-fg);  border-color: var(--tag-morto-bd); }
+.tag-neutra  { background: var(--tag-neutra-bg); color: var(--tag-neutra-fg); border-color: var(--tag-neutra-bd); }
+
+/* icone de canal */
+.canal { font-size: 1rem; }
+.canal-resp { color: var(--classe-a); }
+.canal-vis  { color: var(--classe-b); }
+.canal-nada { color: var(--classe-c); }
+
+.text-classea { color: var(--classe-a); }
+.text-classeb { color: var(--classe-b); }
+.text-cinza   { color: var(--classe-c); }
+.text-alerta  { color: var(--alerta); }
+
+/* cabecalho e navegacao */
+.barra-topo { background: var(--header-bg); color: #FFFFFF; }
+.barra-topo-sub { color: var(--header-sub); }
+.barra-nav { background: var(--card); border-bottom: 1px solid var(--borda); }
+
+.menu-item {
+  padding: .7rem 1rem;
+  font-size: .875rem;
+  font-weight: 600;
+  color: var(--texto2);
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+}
+.menu-item:hover { color: var(--azul-sec); }
+.menu-ativo {
+  color: var(--azul-inst);
+  border-bottom-color: var(--azul-inst);
+}
+
+/* botao de troca de tema, no canto do cabecalho */
+.btn-tema {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px; height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .28);
+  background: rgba(255, 255, 255, .10);
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+  flex-shrink: 0;
+}
+.btn-tema:hover { background: rgba(255, 255, 255, .20); border-color: rgba(255, 255, 255, .45); }
+.btn-tema:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 2px; }
+.btn-tema svg { width: 17px; height: 17px; display: block; }
+.btn-tema .icone-lua { display: none; }
+[data-tema="escuro"] .btn-tema .icone-sol { display: none; }
+[data-tema="escuro"] .btn-tema .icone-lua { display: block; }
+
+table.grade { width: 100%; border-collapse: collapse; }
+table.grade thead th {
+  background: var(--superficie2);
+  color: var(--texto2);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: .6rem .75rem;
+  border-bottom: 1px solid var(--borda);
+  white-space: nowrap;
+}
+table.grade tbody td {
+  padding: .6rem .75rem;
+  font-size: .82rem;
+  border-bottom: 1px solid var(--borda-suave);
+  vertical-align: middle;
+}
+table.grade tbody tr:hover { background: var(--hover); cursor: pointer; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .42rem .8rem;
+  border-radius: 7px;
+  font-size: .78rem;
+  font-weight: 600;
+  border: 1px solid var(--borda);
+  background: var(--btn-bg);
+  color: var(--texto);
+  cursor: pointer;
+  transition: .12s;
+}
+.btn:hover { background: var(--btn-hover); }
+.btn-azul  { background: var(--btn-azul-bg);  color: var(--btn-azul-fg);  border-color: var(--btn-azul-bg); }
+.btn-azul:hover  { background: var(--btn-azul-hover); border-color: var(--btn-azul-hover); }
+.btn-verde { background: var(--btn-verde-bg); color: var(--btn-verde-fg); border-color: var(--btn-verde-bg); }
+.btn-verde:hover { background: var(--btn-verde-hover); border-color: var(--btn-verde-hover); }
+.btn-whats { background: var(--btn-whats-bg); color: var(--btn-whats-fg); border-color: var(--btn-whats-bg); }
+.btn-whats:hover { background: var(--btn-whats-hover); border-color: var(--btn-whats-hover); }
+.btn-alerta { background: var(--btn-alerta-bg); color: var(--alerta); border-color: var(--btn-alerta-bd); }
+.btn-alerta:hover { background: var(--btn-alerta-hover); }
+
+.filtro-select {
+  padding: .38rem 1.9rem .38rem .75rem;
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  background-color: var(--btn-bg);
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--texto);
+  appearance: none;
+  background-image: var(--seta-select);
+  background-repeat: no-repeat;
+  background-position: right .6rem center;
+  cursor: pointer;
+}
+.filtro-select:focus { outline: 2px solid var(--azul-sec); outline-offset: 1px; }
+
+/* campos de formulario acompanham o tema (o Tailwind nao os pinta) */
+input[type="text"], input[type="search"], input[type="date"], input[type="number"],
+input[type="email"], input[type="tel"], input[type="file"], textarea, select {
+  background-color: var(--btn-bg);
+  color: var(--texto);
+  border-color: var(--borda);
+}
+input::placeholder, textarea::placeholder { color: var(--texto3); }
+
+.kpi { border-left: 5px solid var(--classe-c); }
+.kpi-azul  { border-left-color: var(--azul-inst); }
+.kpi-a     { border-left-color: var(--classe-a); }
+.kpi-b     { border-left-color: var(--classe-b); }
+.kpi-c     { border-left-color: var(--classe-c); }
+.kpi-resp  { border-left-color: var(--azul-sec); }
+.kpi-reat  { border-left-color: var(--whats); }
+
+.barra-fundo { background: var(--barra-fundo); border-radius: 999px; height: 6px; overflow: hidden; }
+.barra { height: 100%; border-radius: 999px; }
+
+.semaforo-VERDE   { border-left: 6px solid var(--classe-a); }
+.semaforo-AMARELA { border-left: 6px solid var(--classe-b); }
+.semaforo-VERMELHA{ border-left: 6px solid var(--alerta); }
+.semaforo-BRANCA  { border-left: 6px solid var(--branca); border-style: dashed; }
+
+.vazio {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--texto2);
+  font-size: .85rem;
+}
+
+.flash {
+  padding: .7rem 1rem;
+  border-radius: 8px;
+  font-size: .85rem;
+  font-weight: 600;
+  margin-bottom: .75rem;
+  border: 1px solid;
+}
+.flash-ok       { background: var(--tag-ativo-bg); color: var(--tag-ativo-fg); border-color: var(--tag-ativo-bd); }
+.flash-promocao { background: var(--ok-fundo);     color: var(--ok-texto);     border-color: var(--classe-a); }
+.flash-aviso    { background: var(--tag-limbo-bg); color: var(--tag-limbo-fg); border-color: var(--tag-limbo-bd); }
+.flash-erro     { background: var(--tag-morto-bg); color: var(--tag-morto-fg); border-color: var(--tag-morto-bd); }
+
+.linha-tempo { border-left: 2px solid var(--borda); padding-left: 1rem; }
+.linha-tempo li { position: relative; padding-bottom: .9rem; }
+.linha-tempo li::before {
+  content: '';
+  position: absolute;
+  left: -1.32rem; top: .35rem;
+  width: 9px; height: 9px;
+  border-radius: 999px;
+  background: var(--classe-c);
+  border: 2px solid var(--anel-ponto);
+}
+
+/* --------------------------------------------------------------- assinatura
+   Marca do desenvolvedor no rodape. O halo no hover usa o ambar da lanterna
+   do proprio mascote, para o destaque nascer da marca e nao de uma cor
+   qualquer do sistema. */
+
+.assinatura {
+  display: inline-flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .3rem .55rem .3rem .3rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  text-decoration: none;
+  transition: border-color .16s, background .16s;
+}
+.assinatura:hover { border-color: var(--borda); background: var(--superficie2); }
+.assinatura:focus-visible { outline: 2px solid var(--azul-sec); outline-offset: 2px; }
+
+.assinatura-marca {
+  width: 34px; height: 34px;
+  border-radius: 999px;
+  display: block;
+  flex-shrink: 0;
+  transition: transform .18s cubic-bezier(.2, .8, .3, 1.2), box-shadow .18s;
+}
+.assinatura:hover .assinatura-marca {
+  transform: scale(1.09) rotate(-3deg);
+  box-shadow: 0 0 0 3px rgba(217, 167, 108, .35), 0 0 14px rgba(240, 186, 106, .45);
+}
+
+.assinatura-texto { display: flex; flex-direction: column; line-height: 1.15; }
+.assinatura-rotulo {
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--texto3);
+}
+.assinatura-nome {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--texto2);
+  transition: color .16s;
+}
+.assinatura:hover .assinatura-nome { color: var(--azul-sec); }
+
+.rodape { border-top: 1px solid var(--borda); margin-top: 1.5rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .assinatura-marca, .assinatura, .assinatura-nome { transition: none; }
+  .assinatura:hover .assinatura-marca { transform: none; }
+}

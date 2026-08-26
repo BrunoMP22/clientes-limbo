@@ -1,0 +1,100 @@
+{% from '_tema.html' import script_tema, botao_tema, js_tema %}<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Catálogo · condição de retorno</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/estilo.css') }}">
+  {{ script_tema() }}
+</head>
+<body>
+
+<header class="barra-topo">
+  <div class="max-w-[1000px] mx-auto px-6 py-4 flex items-center justify-between gap-4">
+    <div class="text-lg font-bold">Condição especial de retorno</div>
+    <div class="flex items-center gap-3">
+      <div class="text-sm font-bold tracking-wide">CATÁLOGO</div>
+      {{ botao_tema() }}
+    </div>
+  </div>
+</header>
+
+<main class="max-w-[1000px] mx-auto px-6 py-8">
+
+{% if cliente %}
+  <div class="card p-6 mb-5">
+    <div class="text-[.7rem] font-bold tracking-wider" style="color:var(--texto2)">CONDIÇÃO PREPARADA PARA</div>
+    <h1 class="text-2xl font-bold mt-1" style="color:var(--destaque)">{{ cliente.razao_social }}</h1>
+    <div class="text-sm mt-1" style="color:var(--texto2)">
+      {{ cliente.cidade }}/{{ cliente.uf }} · {{ cliente.linhas_compradas or 'peças em geral' }}
+    </div>
+    <p class="text-sm mt-4" style="color:var(--texto)">
+      Olá{% if cliente.nome_contato %}, {{ cliente.nome_contato.split(' ')[0] }}{% endif %}! Que bom te ver por aqui.
+      Separamos condições de prazo e frete para a região de {{ cliente.cidade }} nas linhas que vocês mais levavam.
+      {% if cliente.batedor %}O <span class="font-semibold">{{ cliente.batedor }}</span> atende sua região e entra em contato ainda hoje.{% endif %}
+    </p>
+  </div>
+
+  {% if promovido %}
+    <div class="card p-4 mb-5" style="border:2px solid var(--classe-a);background:var(--ok-fundo)">
+      <div class="font-bold text-[.92rem]" style="color:var(--ok-texto)">✓ Clique registrado — cliente promovido para classe A</div>
+      <div class="text-[.8rem] mt-1" style="color:var(--ok-texto)">
+        O evento EMAIL_CLICADO foi gravado na linha do tempo. O cliente agora entra no roteiro do batedor.
+      </div>
+    </div>
+  {% else %}
+    <div class="card p-4 mb-5" style="border:2px solid var(--borda)">
+      <div class="font-bold text-[.9rem]" style="color:var(--destaque)">✓ Clique registrado</div>
+      <div class="text-[.8rem] mt-1" style="color:var(--texto2)">
+        Este cliente já era classe A. O evento foi somado à linha do tempo — a classe nunca desce.
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+    {% set destaques = [('FREIOS E TRANSMISSÃO', 'Pastilhas, discos, relações e correias', 'até 18% off'),
+                        ('PNEUS E CÂMARAS', 'Linha completa para moto e bike', 'frete incluso'),
+                        ('CAPACETES E ACESSÓRIOS', 'Marcas de giro rápido no balcão', '30/60/90 dias')] %}
+    {% for titulo, desc, selo in destaques %}
+      <div class="card p-4">
+        <div class="text-[.68rem] font-bold tracking-wider" style="color:var(--azul-sec)">{{ titulo }}</div>
+        <div class="text-[.8rem] mt-2" style="color:var(--texto2)">{{ desc }}</div>
+        <div class="mt-3"><span class="tag tag-ATIVO">{{ selo }}</span></div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="card p-5 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <div class="font-bold" style="color:var(--destaque)">Quer receber a tabela completa?</div>
+      <div class="text-[.8rem]" style="color:var(--texto2)">Responda por onde preferir. Retornamos no mesmo dia.</div>
+    </div>
+    <div class="flex gap-2">
+      {% if cliente.whatsapp_e164 %}
+        <a class="btn btn-whats" target="_blank" href="https://wa.me/{{ cliente.whatsapp_e164 }}">💬 Falar no WhatsApp</a>
+      {% endif %}
+      <a class="btn btn-azul" href="/cliente/{{ cliente.id_cliente }}">Ver ficha no BI (demonstração)</a>
+    </div>
+  </div>
+
+  <div class="text-[.7rem] mt-6" style="color:var(--texto3)">
+    Página de demonstração. Em produção este link é o destino do e-mail da campanha, e o cliente não vê o BI.
+  </div>
+
+{% else %}
+  <div class="card p-8 text-center">
+    <div class="text-4xl mb-3">🔍</div>
+    <div class="text-lg font-bold" style="color:var(--destaque)">Link não encontrado</div>
+    <div class="text-sm mt-2" style="color:var(--texto2)">
+      Este link de rastreio não corresponde a nenhum cliente. Verifique o endereço ou peça um novo link.
+    </div>
+    <a href="/" class="btn btn-azul mt-4">Voltar ao painel</a>
+  </div>
+{% endif %}
+
+</main>
+
+{{ js_tema() }}
+</body>
+</html>

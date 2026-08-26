@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block titulo %}Clientes{% endblock %}
+
+{% macro link_ordem(chave, rotulo) -%}
+  {% set args = filtros.to_dict() %}
+  {% set _ = args.update({'sort': chave, 'dir': 'desc' if (filtros.get('sort') == chave and filtros.get('dir') != 'desc') else 'asc'}) %}
+  <a href="{{ url_for('clientes', **args) }}" class="hover:underline">
+    {{ rotulo }}{% if filtros.get('sort') == chave %}{{ ' ▼' if filtros.get('dir') == 'desc' else ' ▲' }}{% endif %}
+  </a>
+{%- endmacro %}
+
+{% block conteudo %}
+
+<form method="get" class="card p-4 mb-4">
+  <div class="flex flex-wrap items-center gap-2 mb-3">
+    <input type="text" name="q" value="{{ filtros.get('q','') }}" placeholder="Buscar por nome, código, e-mail ou telefone"
+           class="flex-1 min-w-[260px] px-3 py-2 border rounded-lg text-sm" style="border-color:var(--borda)">
+    <select name="classe" class="filtro-select">
+      <option value="">Classe ▾</option>
+      {% for v in ['A','B','C'] %}<option value="{{ v }}" {% if filtros.get('classe') == v %}selected{% endif %}>Classe {{ v }}</option>{% endfor %}
+    </select>
+    <select name="status" class="filtro-select">
+      <option value="">Status ▾</option>
+      {% for v in ['LIMBO','ATIVO','MORTO'] %}<option value="{{ v }}" {% if filtros.get('status') == v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+    </select>
+    <select name="uf" class="filtro-select">
+      <option value="">UF ▾</option>
+      {% for v in ufs %}<option value="{{ v }}" {% if filtros.get('uf') == v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+    </select>
+    <select name="batedor" class="filtro-select">
+      <option value="">Batedor ▾</option>
+      {% for v in batedores %}<option value="{{ v }}" {% if filtros.get('batedor') == v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+    </select>
+    <select name="empresa" class="filtro-select">
+      <option value="">Empresa ▾</option>
+      {% for v in empresas %}<option value="{{ v }}" {% if filtros.get('empresa') == v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+    </select>
+    <select name="canal" class="filtro-select">
+      <option value="">Canal pref. ▾</option>
+      {% for v in ['EMAIL','WHATSAPP'] %}<option value="{{ v }}" {% if filtros.get('canal') == v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+    </select>
+    <input type="hidden" name="rapido" value="{{ filtros.get('rapido','') }}">
+    <button class="btn btn-azul">Filtrar</button>
+    <a href="/clientes" class="btn">Limpar</a>
+  </div>
+
+  <div class="flex flex-wrap items-center gap-2 pt-3 border-t" style="border-color:var(--borda)">
+    <span class="text-[.7rem] font-bold tracking-wider" style="color:var(--texto2)">FILTROS RÁPIDOS</span>
+    {% set rapidos = [('resp_email','Respondeu e-mail'), ('resp_whats','Respondeu WhatsApp'),
+                      ('so_visualizou','Só visualizou'), ('sem_sinal','Sem nenhum sinal'),
+                      ('sem_email','Sem e-mail cadastrado'), ('opt_out','Opt-out')] %}
+    {% for chave, rotulo in rapidos %}
+      {% set ativo = filtros.get('rapido') == chave %}
+      <a href="{{ url_for('clientes', rapido='' if ativo else chave) }}"
+         class="btn {% if ativo %}btn-azul{% endif %}">{{ rotulo }}</a>
+    {% endfor %}
+  </div>
+</form>
+
+<div class="flex items-center justify-between mb-3">
+  <div class="text-sm" style="color:var(--texto2)">
+    <span class="font-bold" style="color:var(--texto)">{{ total }}</span> cliente(s) encontrado(s)
+    {% if paginas > 1 %}· página {{ pagina }} de {{ paginas }}{% endif %}
+  </div>
+  {% set arg_export = filtros.to_dict() %}
+  <a href="{{ url_for('clientes_export', **arg_export) }}" class="btn btn-verde">⭳ Exportar CSV</a>
+</div>
+
+<div class="card overflow-hidden">
+  {% if clientes %}
+  <div class="overflow-x-auto">
+    <table class="grade">
+      <thead><tr>
+        <th>{{ link_ordem('cod','Código') }}</th>
+        <th>{{ link_ordem('razao','Razão social') }}</th>
+        <th>{{ link_ordem('cidade','Cidade/UF') }}</th>
+        <th>{{ link_ordem('classe','Classe') }}</th>
+        <th>E-mail</th><th>WhatsApp</th>
+        <th>{{ link_ordem('ultima','Últ. compra') }}</th>
+        <th>{{ link_ordem('valor','Valor histórico') }}</th>
+        <th>{{ link_ordem('tentativas','Tent.') }}</th>
+        <th>{{ link_ordem('batedor','Batedor') }}</th>
+      </tr></thead>
+      <tbody>
+      {% for c in clientes %}
+        <tr onclick="irPara('/cliente/{{ c.id_cliente }}')">
+          <td class="font-mono text-[.72rem]" style="color:var(--texto2)">{{ c.empresa }}-{{ c.cod_cliente }}-{{ c.loja }}</td>
+          <td class="font-semibold">
+            {{ c.razao_social }}
+            {% if c.opt_out %}<span class="tag tag-MORTO ml-1">opt-out</span>{% endif %}
+            <span class="tag tag-{{ c.status }} ml-1">{{ c.status }}</span>
+          </td>
+          <td>{{ c.cidade }}/{{ c.uf }}</td>
+          <td><span class="pill-classe pill-{{ c.classe }}">{{ c.classe }}</span></td>
+          <td class="text-[.75rem]">
+            {% if c.email %}
+              <span class="{% if not c.email_valido %}line-through text-alerta{% endif %}">{{ c.email.split(';')[0] }}</span>
+            {% else %}<span style="color:var(--texto3)">sem e-mail</span>{% endif %}
+          </td>
+          <td class="text-[.75rem]">
+            {% if c.whatsapp_valido %}{{ c.whatsapp }}{% else %}<span class="text-alerta">{{ c.whatsapp }} (inválido)</span>{% endif %}
+          </td>
+          <td>{{ c.dt_ultima_compra | data_br }}</td>
+          <td class="whitespace-nowrap">{{ c.vlr_historico | moeda }}</td>
+          <td class="text-center">{{ c.qtd_tentativas }}</td>
+          <td>{{ c.batedor or '—' }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="vazio">
+      Nenhum cliente atende a esses filtros.<br>
+      Remova um dos filtros ou use <a href="/clientes" class="underline font-semibold">Limpar</a> para ver a carteira inteira.
+    </div>
+  {% endif %}
+</div>
+
+{% if paginas > 1 %}
+  {% set nav = filtros.to_dict() %}
+  <div class="flex items-center justify-center gap-2 mt-4">
+    {% if pagina > 1 %}
+      {% set _ = nav.update({'page': pagina - 1}) %}
+      <a href="{{ url_for('clientes', **nav) }}" class="btn">← Anterior</a>
+    {% endif %}
+    <span class="text-sm" style="color:var(--texto2)">{{ pagina }} / {{ paginas }}</span>
+    {% if pagina < paginas %}
+      {% set _ = nav.update({'page': pagina + 1}) %}
+      <a href="{{ url_for('clientes', **nav) }}" class="btn">Próxima →</a>
+    {% endif %}
+  </div>
+{% endif %}
+
+{% endblock %}

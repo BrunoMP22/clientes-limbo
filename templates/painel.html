@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block titulo %}Painel{% endblock %}
+
+{% macro icone_canal(respondeu, visualizou, simbolo) -%}
+  {% if respondeu %}<span class="canal canal-resp" title="Respondeu">{{ simbolo }}</span>
+  {% elif visualizou %}<span class="canal canal-vis" title="Visualizou, não respondeu">{{ simbolo }}</span>
+  {% else %}<span class="canal canal-nada" title="Sem sinal">{{ simbolo }}</span>{% endif %}
+{%- endmacro %}
+
+{% block conteudo %}
+
+<form method="get" class="card p-3 mb-5 flex flex-wrap items-center gap-2">
+  <span class="titulo-bloco mr-1">Filtros</span>
+  <select name="classe" class="filtro-select" onchange="this.form.submit()">
+    <option value="">Classe ▾</option>
+    {% for v in ['A','B','C'] %}
+      <option value="{{ v }}" {% if filtros.get('classe') == v %}selected{% endif %}>Classe {{ v }}</option>
+    {% endfor %}
+  </select>
+  <select name="status" class="filtro-select" onchange="this.form.submit()">
+    <option value="">Status ▾</option>
+    {% for v in ['LIMBO','ATIVO','MORTO'] %}
+      <option value="{{ v }}" {% if filtros.get('status') == v %}selected{% endif %}>{{ v }}</option>
+    {% endfor %}
+  </select>
+  <select name="uf" class="filtro-select" onchange="this.form.submit()">
+    <option value="">UF ▾</option>
+    {% for v in ufs %}<option value="{{ v }}" {% if filtros.get('uf') == v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+  </select>
+  <select name="batedor" class="filtro-select" onchange="this.form.submit()">
+    <option value="">Batedor ▾</option>
+    {% for v in batedores %}<option value="{{ v }}" {% if filtros.get('batedor') == v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+  </select>
+  <select name="empresa" class="filtro-select" onchange="this.form.submit()">
+    <option value="">Empresa ▾</option>
+    {% for v in empresas %}<option value="{{ v }}" {% if filtros.get('empresa') == v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+  </select>
+  <select name="ano" class="filtro-select" onchange="this.form.submit()">
+    <option value="">Ano últ. compra ▾</option>
+    {% for v in anos %}<option value="{{ v }}" {% if filtros.get('ano') == v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+  </select>
+  {% if filtros %}<a href="/" class="btn">Limpar filtros</a>{% endif %}
+</form>
+
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
+  {% set cartoes = [
+    ('CLIENTES LIMBO', kpis.limbo, 'parados há mais de 1 ano', 'kpi-azul'),
+    ('CLASSE A', kpis.a, 'responderam o contato', 'kpi-a'),
+    ('CLASSE B', kpis.b, 'visualizaram, não responderam', 'kpi-b'),
+    ('CLASSE C', kpis.c, 'ainda não engajados', 'kpi-c'),
+    ('RESPONDERAM', kpis.responderam, 'por e-mail ou WhatsApp', 'kpi-resp'),
+    ('REATIVADOS', kpis.reativados, 'voltaram a comprar', 'kpi-reat') ] %}
+  {% for rotulo, valor, sub, cor in cartoes %}
+    <div class="card kpi {{ cor }} p-4">
+      <div class="text-[.66rem] font-bold tracking-wider" style="color:var(--texto2)">{{ rotulo }}</div>
+      <div class="text-3xl font-bold mt-1" style="color:var(--destaque)">{{ valor }}</div>
+      <div class="text-[.7rem] mt-1" style="color:var(--texto2)">{{ sub }}</div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
+  <div class="card p-4">
+    <div class="titulo-bloco mb-3">Distribuição por classe</div>
+    <div class="relative" style="height:200px"><canvas id="g_classe"></canvas></div>
+    <div class="mt-3 space-y-1.5" id="legenda_classe"></div>
+  </div>
+  <div class="card p-4">
+    <div class="titulo-bloco mb-3">Engajamento por canal</div>
+    <div class="relative" style="height:250px"><canvas id="g_canal"></canvas></div>
+    <div class="text-[.7rem] mt-2" style="color:var(--texto2)">Compara e-mail e WhatsApp em enviados, visualizados e respondidos.</div>
+  </div>
+  <div class="card p-4">
+    <div class="titulo-bloco mb-3">Clientes por ano da última compra</div>
+    <div class="relative" style="height:250px"><canvas id="g_anos"></canvas></div>
+    <div class="text-[.7rem] mt-2" style="color:var(--texto2)">Faixa do limbo: 2019 a 2024.</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="p-4 border-b flex items-center justify-between" style="border-color:var(--borda)">
+    <div>
+      <div class="titulo-bloco">Clientes que responderam</div>
+      <div class="text-[.72rem] mt-1" style="color:var(--texto2)">Quem responde deve ser atendido no mesmo dia.</div>
+    </div>
+    <a href="/clientes?rapido=resp_email" class="btn">Ver todos</a>
+  </div>
+  {% if responderam %}
+  <div class="overflow-x-auto">
+    <table class="grade">
+      <thead><tr>
+        <th>Cód.</th><th>Cliente</th><th>Cidade/UF</th><th>Classe</th>
+        <th>E-mail</th><th>WhatsApp</th><th>Respondeu em</th><th>Últ. compra</th><th>Batedor</th>
+      </tr></thead>
+      <tbody>
+      {% for c in responderam %}
+        <tr onclick="irPara('/cliente/{{ c.id_cliente }}')">
+          <td class="font-mono text-[.75rem]" style="color:var(--texto2)">{{ c.empresa }}-{{ c.cod_cliente }}</td>
+          <td class="font-semibold">{{ c.razao_social }}</td>
+          <td>{{ c.cidade }}/{{ c.uf }}</td>
+          <td><span class="pill-classe pill-{{ c.classe }}">{{ c.classe }}</span></td>
+          <td>{{ icone_canal(c.respondeu_email, c.qtd_emails_abertos, '✉') }}</td>
+          <td>{{ icone_canal(c.respondeu_whatsapp, c.qtd_whats_visualizados, '💬') }}</td>
+          <td>{{ c.dt_ultima_resposta | datahora_br }}</td>
+          <td>{{ c.dt_ultima_compra | data_br }}</td>
+          <td>{{ c.batedor or '—' }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="vazio">Nenhum cliente respondeu dentro dos filtros atuais.<br>
+      Tente limpar os filtros ou selecionar a classe A.</div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>window.DADOS_PAINEL = {{ dados_graficos | tojson }};</script>
+<script src="{{ url_for('static', filename='js/painel.js') }}"></script>
+{% endblock %}

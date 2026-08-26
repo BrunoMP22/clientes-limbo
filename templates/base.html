@@ -1,0 +1,81 @@
+{% from '_tema.html' import script_tema, botao_tema, js_tema %}<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Clientes Limbo{% endblock %} · BI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/estilo.css') }}">
+  {{ script_tema() }}
+</head>
+<body>
+
+<header class="barra-topo">
+  <div class="max-w-[1400px] mx-auto px-6 py-3.5 flex items-center justify-between gap-4">
+    <div>
+      <div class="text-[1.05rem] font-bold leading-tight">Gestão de Clientes Limbo</div>
+      <div class="text-[.72rem] barra-topo-sub">Reativação de carteira · distribuição de peças</div>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="text-right">
+        <div class="text-sm font-bold tracking-wide">BRUNO PRIMO · BI</div>
+        <div class="text-[.7rem] barra-topo-sub">Belo Horizonte/MG</div>
+      </div>
+      {{ botao_tema() }}
+    </div>
+  </div>
+</header>
+
+<nav class="barra-nav">
+  <div class="max-w-[1400px] mx-auto px-6 flex gap-1 overflow-x-auto">
+    {% set abas = [('painel','Painel','/'), ('clientes','Clientes','/clientes'),
+                   ('regua','Contatos do dia','/regua'), ('cidades','Cidades','/cidades'),
+                   ('roteiro','Roteiro do batedor','/roteiro'),
+                   ('importar','Importar eventos','/importar')] %}
+    {% for endpoint, rotulo, href in abas %}
+      <a href="{{ href }}" class="menu-item {% if request.endpoint == endpoint or (endpoint == 'clientes' and request.endpoint == 'cliente_detalhe') %}menu-ativo{% endif %}">{{ rotulo }}</a>
+    {% endfor %}
+  </div>
+</nav>
+
+<main class="max-w-[1400px] mx-auto px-6 py-6">
+  {% with mensagens = get_flashed_messages(with_categories=true) %}
+    {% if mensagens %}
+      {% for categoria, texto in mensagens %}
+        <div class="flash flash-{{ categoria }}">{{ texto }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  {% block conteudo %}{% endblock %}
+</main>
+
+<footer class="max-w-[1400px] mx-auto px-6 py-6 text-[.72rem]" style="color:var(--texto2)">
+  Projeto de demonstração · dados fictícios · não conectado ao ERP Protheus.
+</footer>
+
+<script>
+function copiar(texto, botao) {
+  const finalizar = () => {
+    if (!botao) return;
+    const original = botao.innerHTML;
+    botao.innerHTML = '✓ copiado';
+    setTimeout(() => { botao.innerHTML = original; }, 1400);
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(texto).then(finalizar).catch(() => fallback(texto, finalizar));
+  } else { fallback(texto, finalizar); }
+}
+function fallback(texto, cb) {
+  const ta = document.createElement('textarea');
+  ta.value = texto; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta); cb();
+}
+function irPara(url) { window.location = url; }
+</script>
+{{ js_tema() }}
+{% block scripts %}{% endblock %}
+</body>
+</html>

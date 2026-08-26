@@ -1,0 +1,22 @@
+# dependencias e build do front
+web/node_modules/
+web/dist/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# banco de demonstracao: e regenerado sozinho na primeira execucao
+clientes_limbo.db
+
+# saidas geradas em tempo de execucao
+output/roteiros/*.xlsx
+output/logs/*
+
+# ambiente
+.env
+.venv/
+venv/
+
+# especificacao original: fica local, traz contexto interno da empresa
+zPrompt-Execução.md

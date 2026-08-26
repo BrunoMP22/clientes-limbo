@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+/* DECISAO: o tema continua vindo de static/css/estilo.css, o mesmo arquivo que
+   as telas Jinja usam. Enquanto a migracao acontece tela a tela, duplicar os
+   tokens faria as duas versoes divergirem de cor. Importado depois do Tailwind
+   para que os componentes (.card, .btn, .tag) vencam o preflight. */
+@import "../../static/css/estilo.css";

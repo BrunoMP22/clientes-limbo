@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+{% block titulo %}{{ c.razao_social }}{% endblock %}
+
+{% block conteudo %}
+
+<a href="/clientes" class="text-[.78rem] font-semibold mb-3 inline-block" style="color:var(--azul-sec)">← voltar para a lista</a>
+
+<div class="card p-5 mb-4">
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-3 flex-wrap">
+        <span class="pill-classe pill-{{ c.classe }}" style="width:36px;height:36px;font-size:1rem">{{ c.classe }}</span>
+        <h1 class="text-xl font-bold" style="color:var(--destaque)">{{ c.razao_social }}</h1>
+        <span class="tag tag-{{ c.status }}">{{ c.status }}</span>
+        {% if c.opt_out %}<span class="tag tag-MORTO">OPT-OUT</span>{% endif %}
+        {% if c.na_fila_batedor %}<span class="tag tag-ATIVO">NA FILA DO BATEDOR</span>{% endif %}
+      </div>
+      <div class="text-[.8rem] mt-2" style="color:var(--texto2)">
+        Código <span class="font-mono font-semibold">{{ c.empresa }}-{{ c.cod_cliente }}-{{ c.loja }}</span>
+        · {{ c.cidade }}/{{ c.uf }}
+        {% if c.cod_ibge %}· IBGE {{ c.cod_ibge }}{% else %}· <span class="text-alerta">sem código IBGE</span>{% endif %}
+        {% if c.dt_mudanca_classe %}· classe alterada em {{ c.dt_mudanca_classe | data_br }}{% endif %}
+      </div>
+    </div>
+    <div class="text-right">
+      <div class="text-[.66rem] font-bold tracking-wider" style="color:var(--texto2)">VALOR HISTÓRICO</div>
+      <div class="text-2xl font-bold" style="color:var(--destaque)">{{ c.vlr_historico | moeda }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+  <!-- coluna esquerda -->
+  <div class="lg:col-span-1 space-y-4">
+
+    <!-- CONTATO -->
+    <div class="card p-4" style="border-left:5px solid var(--azul-sec)">
+      <div class="titulo-bloco mb-3">Contato</div>
+
+      <div class="mb-3">
+        <div class="text-[.68rem] font-bold" style="color:var(--texto2)">E-MAIL</div>
+        {% if c.email %}
+          <div class="flex items-center gap-2 mt-1 flex-wrap">
+            <span class="text-[.82rem] font-semibold {% if not c.email_valido %}line-through{% endif %}">{{ c.email }}</span>
+            {% if c.email_valido %}<span class="tag tag-ATIVO">válido</span>
+            {% else %}<span class="tag tag-MORTO">devolvido</span>{% endif %}
+            <button class="btn" onclick="copiar('{{ c.email }}', this)">copiar</button>
+          </div>
+        {% else %}
+          <div class="text-[.82rem] mt-1" style="color:var(--texto3)">sem e-mail cadastrado — contatar por WhatsApp</div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <div class="text-[.68rem] font-bold" style="color:var(--texto2)">WHATSAPP</div>
+        <div class="flex items-center gap-2 mt-1 flex-wrap">
+          <span class="text-[.82rem] font-semibold">{{ c.whatsapp or '—' }}</span>
+          {% if not c.whatsapp_valido %}<span class="tag tag-MORTO">inválido</span>{% endif %}
+          {% if c.whatsapp_e164 %}
+            <a class="btn btn-whats" target="_blank" href="https://wa.me/{{ c.whatsapp_e164 }}">💬 abrir no WhatsApp</a>
+            <button class="btn" onclick="copiar('{{ c.whatsapp }}', this)">copiar</button>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 text-[.8rem] mb-3">
+        <div>
+          <div class="text-[.68rem] font-bold" style="color:var(--texto2)">CONTATO</div>
+          <div class="font-semibold">{{ c.nome_contato or '—' }}</div>
+        </div>
+        <div>
+          <div class="text-[.68rem] font-bold" style="color:var(--texto2)">CANAL PREFERENCIAL</div>
+          <div class="font-semibold">{{ c.canal_pref or '—' }}</div>
+        </div>
+        <div class="col-span-2">
+          <div class="text-[.68rem] font-bold" style="color:var(--texto2)">BATEDOR RESPONSÁVEL</div>
+          <div class="font-semibold">{{ c.batedor or 'não atribuído' }}</div>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t" style="border-color:var(--borda)">
+        <div class="text-[.68rem] font-bold" style="color:var(--texto2)">LINK RASTREÁVEL INDIVIDUAL</div>
+        {% set link = request.url_root.rstrip('/') ~ '/r/' ~ c.token_rastreio %}
+        <div class="flex items-center gap-2 mt-1 flex-wrap">
+          <code class="text-[.72rem] px-2 py-1 rounded" style="background:var(--superficie3)">{{ link }}</code>
+          <button class="btn" onclick="copiar('{{ link }}', this)">copiar</button>
+          <a class="btn" target="_blank" href="/r/{{ c.token_rastreio }}">abrir</a>
+        </div>
+        <div class="text-[.68rem] mt-1.5" style="color:var(--texto3)">Um clique nesse link registra EMAIL_CLICADO e promove o cliente para classe A.</div>
+      </div>
+    </div>
+
+    <!-- ENGAJAMENTO -->
+    <div class="card p-4">
+      <div class="titulo-bloco mb-3">Engajamento</div>
+      <div class="grid grid-cols-2 gap-3">
+        {% set paineis = [
+          ('✉ E-MAIL', c.qtd_emails_enviados, c.qtd_emails_abertos, c.qtd_emails_respondidos, 'Abertos', 'var(--destaque)'),
+          ('💬 WHATSAPP', c.qtd_whats_enviados, c.qtd_whats_visualizados, c.qtd_whats_respondidos, 'Visualizados', 'var(--whats)') ] %}
+        {% for titulo, env, vis, resp, rot_vis, cor in paineis %}
+          <div class="p-3 rounded-lg" style="background:var(--superficie2);border:1px solid var(--borda)">
+            <div class="text-[.72rem] font-bold mb-2" style="color:{{ cor }}">{{ titulo }}</div>
+            <div class="space-y-1 text-[.78rem]">
+              <div class="flex justify-between"><span style="color:var(--texto2)">Enviados:</span><span class="font-bold">{{ env }}</span></div>
+              <div class="flex justify-between"><span style="color:var(--texto2)">{{ rot_vis }}:</span><span class="font-bold">{{ vis }}</span></div>
+              <div class="flex justify-between"><span style="color:var(--texto2)">Respondidos:</span><span class="font-bold">{{ resp }}</span></div>
+            </div>
+            {# a barra mostra o avanco no funil do canal: enviado, visualizado, respondido #}
+            {% if resp %}{% set larg, cor_barra = 100, 'var(--classe-a)' %}
+            {% elif vis %}{% set larg, cor_barra = 60, 'var(--classe-b)' %}
+            {% elif env %}{% set larg, cor_barra = 25, 'var(--texto3)' %}
+            {% else %}{% set larg, cor_barra = 3, 'var(--texto3)' %}{% endif %}
+            <div class="barra-fundo mt-2">
+              <div class="barra" style="width:{{ larg }}%;background:{{ cor_barra }}"></div>
+            </div>
+            <div class="text-[.66rem] mt-1.5" style="color:var(--texto3)">
+              {% if resp %}respondeu{% elif vis %}visualizou, não respondeu{% else %}sem sinal{% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="text-[.72rem] mt-3" style="color:var(--texto2)">
+        Última resposta: <span class="font-semibold">{{ c.dt_ultima_resposta | datahora_br }}</span>
+      </div>
+    </div>
+
+    <!-- HISTORICO COMERCIAL -->
+    <div class="card p-4">
+      <div class="titulo-bloco mb-3">Histórico comercial</div>
+      <div class="space-y-2 text-[.82rem]">
+        <div class="flex justify-between"><span style="color:var(--texto2)">Última compra</span><span class="font-semibold">{{ c.dt_ultima_compra | data_br }}</span></div>
+        <div class="flex justify-between"><span style="color:var(--texto2)">Anos inativo</span><span class="font-semibold">{{ c.anos_inativo }}</span></div>
+        <div class="flex justify-between"><span style="color:var(--texto2)">Valor histórico</span><span class="font-semibold">{{ c.vlr_historico | moeda }}</span></div>
+        <div class="flex justify-between"><span style="color:var(--texto2)">Qtd. notas</span><span class="font-semibold">{{ c.qtd_notas }}</span></div>
+        {% if c.dt_reativacao %}
+        <div class="flex justify-between"><span style="color:var(--texto2)">Reativado em</span><span class="font-semibold text-classea">{{ c.dt_reativacao | data_br }}</span></div>
+        {% endif %}
+        <div class="pt-2 border-t" style="border-color:var(--borda)">
+          <div style="color:var(--texto2)">Linhas que costumava comprar</div>
+          <div class="font-semibold mt-1">{{ c.linhas_compradas or '—' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REGUA -->
+    <div class="card p-4">
+      <div class="titulo-bloco mb-3">Situação na régua</div>
+      <div class="space-y-2 text-[.82rem]">
+        <div class="flex justify-between"><span style="color:var(--texto2)">Etapa atual</span><span class="font-semibold">{{ c.etapa_regua }}{% if c.etapa_regua > 5 %} (ciclo encerrado){% endif %}</span></div>
+        <div class="flex justify-between"><span style="color:var(--texto2)">Tentativas sem retorno</span><span class="font-semibold">{{ c.qtd_tentativas }}/3</span></div>
+        <div class="flex justify-between"><span style="color:var(--texto2)">Último contato</span><span class="font-semibold">{{ c.dt_ultimo_contato | data_br }}</span></div>
+        <div class="flex justify-between"><span style="color:var(--texto2)">Próximo contato</span><span class="font-semibold">{{ c.dt_proximo_contato | data_br }}</span></div>
+        {% if c.dt_fim_quarentena %}
+        <div class="flex justify-between"><span style="color:var(--texto2)">Quarentena até</span><span class="font-semibold text-classeb">{{ c.dt_fim_quarentena | data_br }}</span></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- coluna direita -->
+  <div class="lg:col-span-2 space-y-4">
+
+    <!-- ACOES -->
+    <div class="card p-4">
+      <div class="titulo-bloco mb-1">Ações</div>
+      <div class="text-[.72rem] mb-3" style="color:var(--texto2)">
+        Cada botão grava um evento e recalcula a classe na hora. A classe só sobe, nunca desce.
+      </div>
+      <div class="flex flex-wrap gap-2">
+        {% for tipo, rotulo in ACOES_FICHA %}
+          <form method="post" action="{{ url_for('cliente_acao', id_cliente=c.id_cliente) }}">
+            <input type="hidden" name="tipo_evento" value="{{ tipo }}">
+            <button class="btn {% if tipo in ['EMAIL_RESPONDIDO','WHATSAPP_RESPONDIDO','EMAIL_CLICADO','PEDIU_ORCAMENTO','ACEITOU_VISITA'] %}btn-verde{% elif tipo == 'NOTA_FISCAL' %}btn-azul{% elif tipo == 'OPT_OUT' %}btn-alerta{% endif %}">
+              {{ rotulo }}
+            </button>
+          </form>
+        {% endfor %}
+      </div>
+      <form method="post" action="{{ url_for('cliente_batedor', id_cliente=c.id_cliente) }}"
+            class="flex items-center gap-2 mt-4 pt-4 border-t" style="border-color:var(--borda)">
+        <span class="text-[.78rem] font-semibold" style="color:var(--texto2)">Atribuir batedor:</span>
+        <select name="batedor" class="filtro-select">
+          {% for b in BATEDORES %}<option value="{{ b }}" {% if c.batedor == b %}selected{% endif %}>{{ b }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-azul">Salvar</button>
+      </form>
+    </div>
+
+    <!-- LINHA DO TEMPO -->
+    <div class="card p-4">
+      <div class="titulo-bloco mb-3">Linha do tempo · {{ eventos|length }} evento(s)</div>
+      {% if eventos %}
+        <ul class="linha-tempo max-h-[420px] overflow-y-auto pr-2">
+          {% for e in eventos %}
+            {% set info = ROTULO_EVENTO.get(e.tipo_evento, ('•', e.tipo_evento, 'text-cinza')) %}
+            <li>
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <span class="{{ info[2] }} font-semibold text-[.84rem]">{{ info[0] }} {{ info[1] }}</span>
+                  <div class="text-[.72rem] mt-1" style="color:var(--texto3)">
+                    {{ e.canal or '—' }} · origem: {{ e.origem or '—' }}
+                    {% if e.detalhe %}<br>{{ e.detalhe }}{% endif %}
+                  </div>
+                </div>
+                <div class="text-[.72rem] whitespace-nowrap" style="color:var(--texto2)">{{ e.dt_evento | datahora_br }}</div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="vazio">Nenhum evento registrado ainda.<br>Use os botões de ação acima para começar a régua deste cliente.</div>
+      {% endif %}
+    </div>
+
+    <!-- VISITAS -->
+    <div class="card p-4">
+      <div class="titulo-bloco mb-3">Visitas do batedor</div>
+      {% if visitas %}
+        <table class="grade mb-4">
+          <thead><tr><th>Data</th><th>Batedor</th><th>Resultado</th><th>Motivo</th><th>Observação</th></tr></thead>
+          <tbody>
+          {% for v in visitas %}
+            <tr style="cursor:default">
+              <td>{{ v.dt_visita | data_br }}</td>
+              <td>{{ v.batedor or '—' }}</td>
+              <td>
+                <span class="tag {% if v.resultado == 'COMPROU' %}tag-ATIVO{% elif v.resultado == 'NAO_COMPROU' %}tag-MORTO{% else %}tag-LIMBO{% endif %}">
+                  {{ v.resultado }}
+                </span>
+              </td>
+              <td>{{ v.motivo or '—' }}</td>
+              <td>{{ v.observacao or '—' }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="vazio">Nenhuma visita registrada.<br>Use o formulário abaixo para lançar o retorno do batedor.</div>
+      {% endif %}
+
+      <form method="post" action="{{ url_for('cliente_visita', id_cliente=c.id_cliente) }}"
+            class="pt-4 border-t grid grid-cols-1 md:grid-cols-4 gap-2 items-end" style="border-color:var(--borda)">
+        <div>
+          <label class="text-[.68rem] font-bold block mb-1" style="color:var(--texto2)">RESULTADO</label>
+          <select name="resultado" class="filtro-select w-full">
+            <option value="COMPROU">COMPROU</option>
+            <option value="NAO_COMPROU">NÃO COMPROU</option>
+            <option value="REMARCADO">REMARCADO</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-[.68rem] font-bold block mb-1" style="color:var(--texto2)">MOTIVO</label>
+          <input name="motivo" class="w-full px-3 py-2 border rounded-lg text-sm" style="border-color:var(--borda)" placeholder="obrigatório se não comprou">
+        </div>
+        <div>
+          <label class="text-[.68rem] font-bold block mb-1" style="color:var(--texto2)">OBSERVAÇÃO</label>
+          <input name="observacao" class="w-full px-3 py-2 border rounded-lg text-sm" style="border-color:var(--borda)">
+        </div>
+        <button class="btn btn-azul justify-center">Registrar visita</button>
+      </form>
+      <div class="text-[.68rem] mt-2" style="color:var(--texto3)">Retorno obrigatório em até 5 dias úteis após a visita. Resultado COMPROU reativa o cliente.</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

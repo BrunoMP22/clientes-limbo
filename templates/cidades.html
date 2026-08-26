@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block titulo %}Cidades{% endblock %}
+
+{% macro cartao_cidade(c) %}
+<div class="card semaforo-{{ c.cor_semaforo }} p-4">
+  <div class="flex items-start justify-between gap-2">
+    <div>
+      <div class="font-bold text-[.92rem]" style="color:var(--destaque)">{{ c.cidade }}</div>
+      <div class="text-[.72rem]" style="color:var(--texto2)">{{ c.uf }} · IBGE {{ c.cod_ibge }}</div>
+    </div>
+    {% if c.qtd_classe_a >= 5 %}
+      <span class="tag tag-ATIVO">VIAGEM JUSTIFICADA</span>
+    {% endif %}
+  </div>
+
+  {% if c.qtd_clientes %}
+    <div class="grid grid-cols-3 gap-2 mt-3 text-center">
+      <div><div class="text-lg font-bold">{{ c.qtd_clientes }}</div><div class="text-[.62rem]" style="color:var(--texto2)">CLIENTES</div></div>
+      <div><div class="text-lg font-bold text-classea">{{ c.qtd_classe_a }}</div><div class="text-[.62rem]" style="color:var(--texto2)">CLASSE A</div></div>
+      <div><div class="text-lg font-bold text-classeb">{{ c.qtd_classe_b }}</div><div class="text-[.62rem]" style="color:var(--texto2)">CLASSE B</div></div>
+    </div>
+    <div class="flex gap-1.5 mt-3 flex-wrap">
+      {% if c.qtd_ativos %}<span class="tag tag-ATIVO">{{ c.qtd_ativos }} ativo(s)</span>{% endif %}
+      {% if c.qtd_limbo %}<span class="tag tag-LIMBO">{{ c.qtd_limbo }} limbo</span>{% endif %}
+      {% if c.qtd_mortos %}<span class="tag tag-MORTO">{{ c.qtd_mortos }} morto(s)</span>{% endif %}
+    </div>
+    <div class="mt-3 pt-3 border-t text-[.76rem] space-y-1" style="border-color:var(--borda)">
+      <div class="flex justify-between"><span style="color:var(--texto2)">Valor histórico</span><span class="font-semibold">{{ c.vlr_historico | moeda }}</span></div>
+      <div class="flex justify-between"><span style="color:var(--texto2)">Últ. faturamento</span><span class="font-semibold">{{ c.dt_ultimo_faturamento | data_br }}</span></div>
+      <div class="flex justify-between"><span style="color:var(--texto2)">Batedor da região</span><span class="font-semibold">{{ c.batedor_regiao }}</span></div>
+    </div>
+    <a href="/clientes?uf={{ c.uf }}&q={{ c.cidade }}" class="btn w-full justify-center mt-3">Ver clientes</a>
+  {% else %}
+    <div class="text-[.78rem] mt-3" style="color:var(--texto2)">
+      Nenhum cliente cadastrado. Território virgem — candidato a prospecção.
+    </div>
+    <div class="text-[.76rem] mt-2" style="color:var(--texto2)">Batedor da região: <span class="font-semibold">{{ c.batedor_regiao }}</span></div>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{% block conteudo %}
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+  {% set cores = [('VERDE','Cidade com pelo menos 1 cliente ativo','var(--classe-a)'),
+                  ('AMARELA','Só clientes limbo (2019–2024)','var(--classe-b)'),
+                  ('VERMELHA','Só clientes mortos (antes de 2019)','var(--alerta)'),
+                  ('BRANCA','Nenhum cliente — território virgem','var(--branca)')] %}
+  {% for cor, desc, hex in cores %}
+    <a href="{{ url_for('cidades', cor=cor, uf=filtros.get('uf','')) }}"
+       class="card p-4 block" style="border-left:6px solid {{ hex }}">
+      <div class="text-[.66rem] font-bold tracking-wider" style="color:var(--texto2)">{{ cor }}</div>
+      <div class="text-2xl font-bold mt-1" style="color:var(--destaque)">{{ resumo.get(cor, 0) }}</div>
+      <div class="text-[.68rem] mt-1" style="color:var(--texto2)">{{ desc }}</div>
+    </a>
+  {% endfor %}
+</div>
+
+<form method="get" class="card p-3 mb-4 flex flex-wrap items-center gap-2">
+  <span class="titulo-bloco mr-1">Filtros</span>
+  <select name="cor" class="filtro-select" onchange="this.form.submit()">
+    <option value="">Cor ▾</option>
+    {% for cor, desc, hex in cores %}<option value="{{ cor }}" {% if filtros.get('cor') == cor %}selected{% endif %}>{{ cor }}</option>{% endfor %}
+  </select>
+  <select name="uf" class="filtro-select" onchange="this.form.submit()">
+    <option value="">UF ▾</option>
+    {% for v in ufs %}<option value="{{ v }}" {% if filtros.get('uf') == v %}selected{% endif %}>{{ v }}</option>{% endfor %}
+  </select>
+  {% if filtros %}<a href="/cidades" class="btn">Limpar filtros</a>{% endif %}
+  {% if sem_ibge %}
+    <span class="ml-auto text-[.72rem]" style="color:var(--texto2)">
+      {{ sem_ibge }} cliente(s) sem código IBGE não entram no semáforo.
+    </span>
+  {% endif %}
+</form>
+
+{% if coloridas %}
+  <div class="titulo-bloco mb-3">Cidades com carteira · {{ coloridas | length }}</div>
+  <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+    {% for c in coloridas %}{{ cartao_cidade(c) }}{% endfor %}
+  </div>
+{% elif not brancas %}
+  <div class="card"><div class="vazio">
+    Nenhuma cidade atende a esses filtros.<br>
+    Tente outra cor ou <a href="/cidades" class="underline font-semibold">limpe os filtros</a>.
+  </div></div>
+{% endif %}
+
+{% if brancas %}
+  <div class="card p-4 mb-3" style="background:var(--superficie2)">
+    <div class="titulo-bloco">Território virgem — prospecção · {{ brancas | length }} cidade(s)</div>
+    <div class="text-[.76rem] mt-1" style="color:var(--texto2)">
+      Cidades da tabela de municípios que não têm nenhum cliente cadastrado. Só aparecem porque existe uma base de
+      referência de municípios — sem ela, uma cidade sem cliente jamais apareceria em relatório algum.
+    </div>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+    {% for c in brancas %}{{ cartao_cidade(c) }}{% endfor %}
+  </div>
+{% endif %}
+
+{% endblock %}
