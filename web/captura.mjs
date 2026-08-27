@@ -28,12 +28,15 @@ const nav = await puppeteer.launch({
 for (const t of TELAS) {
   const pg = await nav.newPage()
   await pg.setViewport({ width: 1440, height: t.altura, deviceScaleFactor: 1 })
+
+  // DECISAO: o tema vai direto no localStorage, nao por clique no botao. O
+  // localStorage e compartilhado entre as abas da mesma origem, entao clicar
+  // fazia a captura seguinte herdar o tema da anterior.
+  await pg.goto(BASE + '/', { waitUntil: 'domcontentloaded' })
+  await pg.evaluate((tema) => localStorage.setItem('tema', tema), t.tema)
+
   await pg.goto(BASE + t.rota, { waitUntil: 'networkidle0' })
   await pg.waitForSelector('.card')
-  if (t.tema === 'escuro') {
-    await pg.click('.btn-tema')
-    await new Promise((r) => setTimeout(r, 700))
-  }
   await new Promise((r) => setTimeout(r, 600))   // deixa o Chart.js terminar
   await pg.screenshot({ path: `${DESTINO}/${t.arquivo}` })
   await pg.close()

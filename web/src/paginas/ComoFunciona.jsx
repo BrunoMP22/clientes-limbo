@@ -43,15 +43,6 @@ const EVENTOS = [
   ] },
 ]
 
-const REGUA = [
-  { etapa: 0, dia: 'D+0', canal: 'E-mail', acao: 'Reaproximação', quem: 'Todos' },
-  { etapa: 1, dia: 'D+3', canal: 'WhatsApp', acao: 'Primeiro toque', quem: 'Quem virou B' },
-  { etapa: 2, dia: 'D+10', canal: 'E-mail', acao: 'Oferta com prazo', quem: 'Quem não respondeu' },
-  { etapa: 3, dia: 'D+20', canal: 'WhatsApp', acao: 'Última chamada', quem: 'Visualizou, não respondeu' },
-  { etapa: 4, dia: 'D+30', canal: 'Telefone', acao: 'Ligação', quem: 'Classe A que parou' },
-  { etapa: 5, dia: 'D+45', canal: 'Sistema', acao: 'Encerra o ciclo', quem: 'Quem não deu sinal' },
-]
-
 const INVIOLAVEIS = [
   { icone: '🔒', titulo: 'Só evento registrado muda a classe',
     desc: 'Nada sobe por opinião ou achismo. Toda mudança tem um evento com data, canal e origem na linha do tempo do cliente.' },
@@ -218,28 +209,6 @@ export default function ComoFunciona() {
                   </li>
                 ))}
               </ul>
-            </Card>
-          ))}
-        </div>
-      </Secao>
-
-      {/* ---------------------------------------------------------- a régua */}
-      <Secao titulo="A régua de contato"
-             chamada="A sequência que cada cliente limbo percorre. Quem responde sai da régua e vai direto para atendimento — o objetivo nunca foi completar as seis etapas.">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          {REGUA.map((e) => (
-            <Card key={e.etapa} className="p-4 relative">
-              <div className="text-[.66rem] font-bold tracking-wider"
-                   style={{ color: 'var(--texto3)' }}>ETAPA {e.etapa}</div>
-              <div className="text-xl font-bold mt-0.5"
-                   style={{ color: 'var(--destaque)' }}>{e.dia}</div>
-              <div className="text-[.76rem] font-semibold mt-2"
-                   style={{ color: e.canal === 'WhatsApp' ? 'var(--whats)'
-                          : e.canal === 'Sistema' ? 'var(--texto3)' : 'var(--azul-sec)' }}>
-                {e.canal}
-              </div>
-              <div className="text-[.8rem] font-semibold mt-1">{e.acao}</div>
-              <div className="text-[.7rem] mt-1.5" style={{ color: 'var(--texto2)' }}>{e.quem}</div>
             </Card>
           ))}
         </div>
