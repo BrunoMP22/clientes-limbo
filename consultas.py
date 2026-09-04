@@ -216,6 +216,7 @@ def clientes_regua(conn):
 
 
 def regua(conn, base_url):
+    regras.manter_exemplos_urgentes(conn)
     limite_48h = (datetime.now() - timedelta(hours=48)).strftime('%Y-%m-%d %H:%M:%S')
     urgentes = conn.execute("""
         SELECT * FROM clientes

@@ -211,6 +211,32 @@ def aplicar_evento(conn, id_cliente, tipo_evento, canal=None, dt=None,
     return res
 
 
+# ---------------------------------------------------------------- exemplos fixos
+
+# DECISAO: estes 3 clientes sempre aparecem em "RESPONDERAM - ATENDER HOJE",
+# para servirem de exemplo em demonstracoes. Sem isso a secao esvazia sozinha
+# depois de 48h, porque o sinal depende de dt_ultima_resposta ser recente.
+IDS_EXEMPLO_URGENTE = (6, 19, 40)
+
+
+def manter_exemplos_urgentes(conn):
+    """Renova a resposta dos clientes de IDS_EXEMPLO_URGENTE quando ela
+    envelhece, para a secao "ATENDER HOJE" nunca esvaziar por causa deles."""
+    limite = (datetime.now() - timedelta(hours=47)).strftime('%Y-%m-%d %H:%M:%S')
+    for idc, horas_atras in zip(IDS_EXEMPLO_URGENTE, (3, 14, 30)):
+        cli = conn.execute(
+            'SELECT dt_ultima_resposta, canal_pref, status, opt_out FROM clientes '
+            'WHERE id_cliente = ?', (idc,)).fetchone()
+        if cli is None or cli['status'] != 'LIMBO' or cli['opt_out']:
+            continue
+        if cli['dt_ultima_resposta'] and cli['dt_ultima_resposta'] >= limite:
+            continue
+        tipo = 'EMAIL_RESPONDIDO' if cli['canal_pref'] == 'EMAIL' else 'WHATSAPP_RESPONDIDO'
+        dt = (datetime.now() - timedelta(hours=horas_atras)).strftime('%Y-%m-%d %H:%M:%S')
+        aplicar_evento(conn, idc, tipo, dt=dt, origem='SEED',
+                       detalhe='Resposta recente (exemplo fixo de demonstração)')
+
+
 # ---------------------------------------------------------------- semaforo
 
 def cor_semaforo(qtd_ativos, qtd_limbo, qtd_mortos, qtd_clientes):

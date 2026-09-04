@@ -252,7 +252,7 @@ def popular(conn):
 
     # classe A: envios + abertura + resposta
     respostas = ['EMAIL_RESPONDIDO', 'WHATSAPP_RESPONDIDO', 'EMAIL_CLICADO']
-    recentes = alvo_a[:6]  # respostas nas ultimas 48h -> secao "ATENDER HOJE"
+    recentes = alvo_a[:3]  # respostas nas ultimas 48h -> secao "ATENDER HOJE"
     for idc in alvo_a:
         base = dt_aleatoria(40, 10)
         ev(idc, 'EMAIL_ENVIADO', base)
